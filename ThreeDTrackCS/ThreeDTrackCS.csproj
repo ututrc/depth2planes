@@ -40,6 +40,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FeatureExtractor.cs" />
+    <Compile Include="FeatureMargin.cs" />
+    <Compile Include="GridDivision.cs" />
+    <Compile Include="SizeInt32.cs" />
     <Compile Include="Tracker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
