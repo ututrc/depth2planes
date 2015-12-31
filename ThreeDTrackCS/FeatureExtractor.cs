@@ -17,13 +17,28 @@ namespace ThreeDTrackCS
         private double pointEpsilon;
         private double normalEpsilon;
         private int[] recalculatedIndices;
+        private DepthDataFormat depthDataFormat;
+        private PointCloudFormat pointCloudFormat;
+        private PlaneClusterizationRule planeClusterizationRule;
 
         #endregion
 
         #region Public Properties
 
+        public PlaneClusterizationRule PlaneClusterizationRule
+        {
+            get
+            {
+                return planeClusterizationRule;
+            }
+            set
+            {
+                planeClusterizationRule = value;
+            }
+        }
+
         /// <summary>
-        /// Get or set the accepted normal error value in direction comparisons
+        /// Get or set the accepted normal error value in direction comparisons (for the plane clusterization)
         /// </summary>
         public double NormalEpsilon
         {
@@ -49,6 +64,36 @@ namespace ThreeDTrackCS
             set
             {
                 pointEpsilon = value;
+            }
+        }
+
+        /// <summary>
+        /// Get or set the format of the source depth data
+        /// </summary>
+        public DepthDataFormat DepthDataFormat
+        {
+            get
+            {
+                return depthDataFormat;
+            }
+            set
+            {
+                depthDataFormat = value;
+            }
+        }
+
+        /// <summary>
+        /// Get or set the format of the source point cloud
+        /// </summary>
+        public PointCloudFormat PointCloudFormat
+        {
+            get
+            {
+                return pointCloudFormat;
+            }
+            set
+            {
+                pointCloudFormat = value;
             }
         }
 
@@ -132,6 +177,61 @@ namespace ThreeDTrackCS
         internal void OnMarginChanged()
         {
             Updateindices();
+        }
+
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Extract features from given data
+        /// </summary>
+        /// <param name="depthData">Pointer to depth data</param>
+        /// <param name="pointCloud">Pointer to point cloud</param>
+        public void ExtractFreatures( IntPtr depthData, IntPtr pointCloud )
+        {
+
+            int topLeftIndex, topRightIndex, bottomLeftIndex, bottomRightIndex;
+            int realTopLeftIndex, realTopRightIndex, realBottomLeftIndex, realBottomRightIndex;
+            List<Plane> planeCollection = new List<Plane>( gridDivision.Horizontal * gridDivision.Vertical );
+
+            Vector3d planePoint, planeNormal;
+
+            /*
+             * Get the detected (and allowed) planes from the given data
+             */
+            for ( int x = 0; x < gridDivision.Horizontal; x++ )
+            {
+
+                for ( int y = 0; y < gridDivision.Vertical; y++ )
+                {
+                    topLeftIndex = x + y * gridDivision.Horizontal;
+                    topRightIndex = topLeftIndex + 1;
+                    bottomLeftIndex = topLeftIndex + gridDivision.Horizontal;
+                    bottomRightIndex = bottomLeftIndex + 1;
+
+                    realTopLeftIndex = recalculatedIndices[topLeftIndex];
+                    realTopRightIndex = recalculatedIndices[topRightIndex];
+                    realBottomLeftIndex = recalculatedIndices[bottomLeftIndex];
+                    realBottomRightIndex = recalculatedIndices[bottomRightIndex];
+
+                    if ( FeatureExtractorHelper.DepthDataValid( depthData, depthDataFormat, realTopLeftIndex, realTopRightIndex, realBottomLeftIndex, realBottomRightIndex ) )
+                    {
+                        if ( FeatureExtractorHelper.IsPlane( pointCloud, pointCloudFormat, realTopLeftIndex, realTopRightIndex, realBottomLeftIndex, realBottomRightIndex, pointEpsilon, out planePoint, out planeNormal ) )
+                        {
+                            planeCollection.Add( FeatureExtractorHelper.CreatePlane( planePoint, planeNormal, topLeftIndex ) );
+                        }
+                    }
+
+                }
+
+            }
+
+            /*
+             * Cluster the plane cells to bigger planes
+             */
+
+            throw new NotImplementedException();
         }
 
         #endregion
