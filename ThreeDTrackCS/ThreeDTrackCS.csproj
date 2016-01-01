@@ -47,6 +47,8 @@
     <Compile Include="FeatureMargin.cs" />
     <Compile Include="GridDivision.cs" />
     <Compile Include="Plane.cs" />
+    <Compile Include="PlaneCluster.cs" />
+    <Compile Include="PlaneClusterCollection.cs" />
     <Compile Include="PlaneClusterizationRule.cs" />
     <Compile Include="PointCloudFormat.cs" />
     <Compile Include="SizeInt32.cs" />

@@ -20,11 +20,26 @@ namespace ThreeDTrackCS
         private DepthDataFormat depthDataFormat;
         private PointCloudFormat pointCloudFormat;
         private PlaneClusterizationRule planeClusterizationRule;
+        private PlaneClusterCollection planeCollection;
 
         #endregion
 
         #region Public Properties
 
+        /// <summary>
+        /// Get all the resulted planes from feature extraction
+        /// </summary>
+        public PlaneClusterCollection PlaneCollection
+        {
+            get
+            {
+                return planeCollection;
+            }
+        }
+
+        /// <summary>
+        /// Get or set the rule governing which planes to test
+        /// </summary>
         public PlaneClusterizationRule PlaneClusterizationRule
         {
             get
@@ -34,6 +49,21 @@ namespace ThreeDTrackCS
             set
             {
                 planeClusterizationRule = value;
+            }
+        }
+
+        /// <summary>
+        /// Get or set the required hit test percetage when testing planes against bigger planes
+        /// </summary>
+        public double RequiredPlaneTestHitPercetage
+        {
+            get
+            {
+                return planeCollection.RequiredHitPercetage;
+            }
+            set
+            {
+                planeCollection.RequiredHitPercetage = value;
             }
         }
 
@@ -49,6 +79,7 @@ namespace ThreeDTrackCS
             set
             {
                 normalEpsilon = value;
+                planeCollection.NormalDirectionEpsilon = value;
             }
         }
 
@@ -64,6 +95,7 @@ namespace ThreeDTrackCS
             set
             {
                 pointEpsilon = value;
+                planeCollection.PointEpsilon = value;
             }
         }
 
@@ -140,6 +172,7 @@ namespace ThreeDTrackCS
             gridDivision = new GridDivision( this );
             imageSize = new FeatureImageSize( this );
             margin = new FeatureMargin( this );
+            planeCollection = new PlaneClusterCollection();
         }
 
         #endregion
@@ -231,7 +264,14 @@ namespace ThreeDTrackCS
              * Cluster the plane cells to bigger planes
              */
 
-            throw new NotImplementedException();
+            this.planeCollection.Clear();
+
+            foreach ( Plane plane in planeCollection )
+            {
+                this.planeCollection.AddPlane( plane );
+            }
+
+            // TODO: Instead of just accepting everything, the limiters must be got into use
         }
 
         #endregion

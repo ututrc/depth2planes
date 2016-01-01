@@ -22,6 +22,16 @@ namespace ThreeDTrackCS
         /// </summary>
         public double Z;
 
+        internal static bool IsSimilar( Vector3d normal1, Vector3d normal2, double epsilon, bool areUnits = true )
+        {
+            if ( areUnits )
+            {
+                normal1.Normalize();
+                normal2.Normalize();
+            }
+            return Math.Abs( ( normal1 * normal2 ) - 1 ) <= epsilon;
+        }
+
         /// <summary>
         /// Create a double floating point vector from given values
         /// </summary>

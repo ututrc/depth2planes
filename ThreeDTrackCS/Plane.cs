@@ -1,4 +1,6 @@
-﻿namespace ThreeDTrackCS
+﻿using System;
+
+namespace ThreeDTrackCS
 {
     public struct Plane
     {
@@ -36,6 +38,11 @@
             this.position = position;
             this.normal = normal;
             this.id = id;
+        }
+
+        internal bool ContainsPoint( Vector3d position, double pointEpsilon )
+        {
+            return Math.Abs( normal.X * position.X + normal.Y * position.Y + normal.Z * position.Z - ( normal.X * this.position.X + normal.Y * this.position.Y + normal.Z * this.position.Z ) ) <= pointEpsilon;
         }
     }
 }
