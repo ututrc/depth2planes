@@ -172,7 +172,7 @@ namespace ThreeDTrackCS
             gridDivision = new GridDivision( this );
             imageSize = new FeatureImageSize( this );
             margin = new FeatureMargin( this );
-            planeCollection = new PlaneClusterCollection();
+            planeCollection = new PlaneClusterCollection( this );
         }
 
         #endregion

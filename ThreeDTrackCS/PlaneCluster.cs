@@ -10,9 +10,11 @@ namespace ThreeDTrackCS
         private Dictionary<int, Plane> planes;
         private static int clusterIdGenerator;
         internal int id;
+        private PlaneClusterCollection parent;
 
-        internal PlaneCluster()
+        internal PlaneCluster( PlaneClusterCollection collection )
         {
+            parent = collection;
             planes = new Dictionary<int, Plane>();
             id = clusterIdGenerator++;
         }
@@ -37,7 +39,7 @@ namespace ThreeDTrackCS
 
             foreach ( Plane p in planes.Values )
             {
-                if ( Vector3d.IsSimilar( p.Normal, plane.Normal, normalDirectionEpsilon ) && p.ContainsPoint(plane.Position, pointEpsilon) )
+                if ( (parent.parent.PlaneClusterizationRule == null || parent.parent.PlaneClusterizationRule.Match(parent.parent.GridDivision.Horizontal, plane, p ) ) &&  Vector3d.IsSimilar( p.Normal, plane.Normal, normalDirectionEpsilon ) && p.ContainsPoint(plane.Position, pointEpsilon) )
                 {
                     hits++;
                 }

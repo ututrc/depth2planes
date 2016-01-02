@@ -15,9 +15,11 @@ namespace ThreeDTrackCS
         internal double PointEpsilon;
         internal double RequiredHitPercetage;
         internal double NormalDirectionEpsilon;
+        internal FeatureExtractor parent;
 
-        internal PlaneClusterCollection()
+        internal PlaneClusterCollection( FeatureExtractor extractor )
         {
+            parent = extractor;
             possibleClusters = new List<int>();
             allPlanes = new Dictionary<int, Plane>();
             allClusters = new Dictionary<int, PlaneCluster>();
@@ -55,7 +57,7 @@ namespace ThreeDTrackCS
             switch ( possibleClusters.Count )
             {
                 case 0:
-                    PlaneCluster nCluster = new PlaneCluster();
+                    PlaneCluster nCluster = new PlaneCluster( this );
                     nCluster.AddPlane( plane );
                     allClusters.Add( nCluster.id, nCluster );
                     break;
