@@ -29,6 +29,14 @@ namespace ThreeDTrackCS
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Checks if a plane fits into the cluster
+        /// </summary>
+        /// <param name="plane">The plane in question</param>
+        /// <param name="normalDirectionEpsilon">An acceptable error for the direction</param>
+        /// <param name="pointEpsilon">An acceptable error for the position</param>
+        /// <param name="requiredHitPercetage">How many planes must match all conditions (NOTE: includes the rule matching)</param>
+        /// <returns></returns>
         internal bool IsMatch( Plane plane, double normalDirectionEpsilon, double pointEpsilon, double requiredHitPercetage = .001 )
         {
 
