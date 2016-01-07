@@ -270,8 +270,6 @@ namespace ThreeDTrackCS
             {
                 this.planeCollection.AddPlane( plane );
             }
-
-            // TODO: Instead of just accepting everything, the limiters must be got into use
         }
 
         #endregion

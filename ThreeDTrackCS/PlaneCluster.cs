@@ -21,12 +21,12 @@ namespace ThreeDTrackCS
 
         public IEnumerator<Plane> GetEnumerator()
         {
-            throw new NotImplementedException();
+            return ( (IEnumerable<Plane>)planes.Values ).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            throw new NotImplementedException();
+            return planes.Values.GetEnumerator();
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace ThreeDTrackCS
 
             foreach ( Plane p in planes.Values )
             {
-                if ( (parent.parent.PlaneClusterizationRule == null || parent.parent.PlaneClusterizationRule.Match(parent.parent.GridDivision.Horizontal, plane, p ) ) &&  Vector3d.IsSimilar( p.Normal, plane.Normal, normalDirectionEpsilon ) && p.ContainsPoint(plane.Position, pointEpsilon) )
+                if ( (parent.parent.PlaneClusterizationRule == null || parent.parent.PlaneClusterizationRule.Match(parent.parent.GridDivision.Horizontal, plane, p ) ) &&  Vector3d.IsSimilar( p.Normal, plane.Normal, normalDirectionEpsilon, false ) && p.ContainsPoint(plane.Position, pointEpsilon) )
                 {
                     hits++;
                 }
@@ -84,6 +84,29 @@ namespace ThreeDTrackCS
             get
             {
                 return planes.Count;
+            }
+        }
+
+        public Vector3d AverageNormal
+        {
+            get
+            {
+                double x = 0, y = 0, z = 0;
+                int count = 0;
+                foreach ( Plane plane in planes.Values )
+                {
+                    x += plane.Normal.X;
+                    y += plane.Normal.Y;
+                    z += plane.Normal.Z;
+                    count++;
+                }
+
+                Vector3d result = new Vector3d( x, y, z );
+
+                if ( count > 0 )
+                    result /= count;
+                return result;
+
             }
         }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,6 +22,15 @@ namespace ThreeDTrackCS
         /// The Depth component of the vector
         /// </summary>
         public float Z;
+
+        public static int Size
+        {
+            get
+            {
+                return size;
+            }
+        }
+        private static int size = Marshal.SizeOf<Vector3f>();
 
         /// <summary>
         /// Create a floating point vector from given values

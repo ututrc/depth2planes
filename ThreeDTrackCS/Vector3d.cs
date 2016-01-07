@@ -136,5 +136,13 @@ namespace ThreeDTrackCS
             }
         }
 
+        public static int Size
+        {
+            get
+            {
+                return size;
+            }
+        }
+        private static int size = System.Runtime.InteropServices.Marshal.SizeOf<Vector3d>();
     }
 }

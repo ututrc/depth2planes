@@ -1,20 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace ThreeDTrackCS
 {
-    static unsafe class FeatureExtractorHelper
+    static class FeatureExtractorHelper
     {
         internal static bool DepthDataValid( IntPtr depthDataPointer, DepthDataFormat format, int topLeftIndex, int topRightIndex, int bottomLeftIndex, int bottomRightIndex )
         {
             switch ( format )
             {
                 case DepthDataFormat.UInt16mm:
-                    uint* uint_pointer = (uint*)depthDataPointer;
-                    return uint_pointer[topLeftIndex] > 0 && uint_pointer[topRightIndex] > 0 && uint_pointer[bottomLeftIndex] > 0 && uint_pointer[bottomRightIndex] > 0;
+                    return Marshal.PtrToStructure<ushort>(depthDataPointer + topLeftIndex * 2) > 0
+                        && Marshal.PtrToStructure<ushort>( depthDataPointer + topRightIndex * 2 ) > 0
+                        && Marshal.PtrToStructure<ushort>( depthDataPointer + bottomLeftIndex * 2 ) > 0
+                        && Marshal.PtrToStructure<ushort>( depthDataPointer + bottomRightIndex * 2 ) > 0;
                 default:
                     throw new NotImplementedException();
             }
@@ -28,11 +31,10 @@ namespace ThreeDTrackCS
             {
                 case PointCloudFormat.FloatVector:
                     {
-                        Vector3f* pointer = (Vector3f*)pointCloudPointer;
-                        Vector3f topLeft = pointer[topLeftIndex];
-                        Vector3f topRight = pointer[topRightIndex];
-                        Vector3f bottomLeft = pointer[bottomLeftIndex];
-                        Vector3f bottomRight = pointer[bottomRightIndex];
+                        Vector3f topLeft = Marshal.PtrToStructure<Vector3f>(pointCloudPointer + topLeftIndex * Vector3f.Size);
+                        Vector3f topRight = Marshal.PtrToStructure<Vector3f>( pointCloudPointer + topRightIndex * Vector3f.Size );
+                        Vector3f bottomLeft = Marshal.PtrToStructure<Vector3f>( pointCloudPointer + bottomLeftIndex * Vector3f.Size );
+                        Vector3f bottomRight = Marshal.PtrToStructure<Vector3f>( pointCloudPointer + bottomRightIndex * Vector3f.Size );
 
                         Vector3f dir1 = topRight - topLeft;
                         Vector3f dir2 = bottomLeft - topLeft;
@@ -53,11 +55,10 @@ namespace ThreeDTrackCS
                     }
                 case PointCloudFormat.DoubleVector:
                     {
-                        Vector3d* pointer = (Vector3d*)pointCloudPointer;
-                        Vector3d topLeft = pointer[topLeftIndex];
-                        Vector3d topRight = pointer[topRightIndex];
-                        Vector3d bottomLeft = pointer[bottomLeftIndex];
-                        Vector3d bottomRight = pointer[bottomRightIndex];
+                        Vector3d topLeft = Marshal.PtrToStructure<Vector3d>( pointCloudPointer + topLeftIndex * Vector3d.Size );
+                        Vector3d topRight = Marshal.PtrToStructure<Vector3d>( pointCloudPointer + topRightIndex * Vector3d.Size );
+                        Vector3d bottomLeft = Marshal.PtrToStructure<Vector3d>( pointCloudPointer + bottomLeftIndex * Vector3d.Size );
+                        Vector3d bottomRight = Marshal.PtrToStructure<Vector3d>( pointCloudPointer + bottomRightIndex * Vector3d.Size );
 
                         Vector3d dir1 = topRight - topLeft;
                         Vector3d dir2 = bottomLeft - topLeft;
