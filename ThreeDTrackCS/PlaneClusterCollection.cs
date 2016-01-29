@@ -25,6 +25,22 @@ namespace ThreeDTrackCS
             allClusters = new Dictionary<int, PlaneCluster>();
         }
 
+        public int ClusterCount
+        {
+            get
+            {
+                return allClusters.Count;
+            }
+        }
+
+        public int PlaneCount
+        {
+            get
+            {
+                return allPlanes.Count;
+            }
+        }
+
         public IEnumerator<PlaneCluster> GetEnumerator()
         {
             return ((IEnumerable<PlaneCluster>)allClusters.Values).GetEnumerator();
@@ -67,9 +83,9 @@ namespace ThreeDTrackCS
                 default:
                     for ( int i = possibleClusters.Count - 1; i > 0; i-- )
                     {
-                        foreach ( Plane p in allClusters[i] )
+                        foreach ( Plane p in allClusters[possibleClusters[i]] )
                         {
-                            allClusters[0].AddPlane( p );
+                            allClusters[possibleClusters[0]].AddPlane( p );
                         }
                         allClusters.Remove( possibleClusters[i] );
                     }
@@ -78,5 +94,27 @@ namespace ThreeDTrackCS
 
         }
 
+        internal void RemoveSmallClusters( int minimumCellCount)
+        {
+            HashSet<int> removingClusters = new HashSet<int>();
+
+            foreach ( KeyValuePair<int, PlaneCluster> kvp in allClusters )
+            {
+                if ( kvp.Value.Count < minimumCellCount )
+                {
+                    removingClusters.Add( kvp.Key );
+                }
+            }
+
+            foreach ( int clusterIndex in removingClusters )
+            {
+                foreach ( Plane plane in allClusters[clusterIndex] )
+                {
+                    allPlanes.Remove( plane.Id );
+                }
+                allClusters.Remove( clusterIndex );
+            }
+
+        }
     }
 }

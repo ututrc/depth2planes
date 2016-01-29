@@ -110,5 +110,22 @@ namespace ThreeDTrackCS
             }
         }
 
+        public Vector3d AveragePoint
+        {
+            get
+            {
+                if ( planes.Count == 0 )
+                    return new Vector3d();
+                double x = 0, y = 0, z = 0;
+                foreach ( Plane plane in planes.Values )
+                {
+                    x += plane.Position.X;
+                    y += plane.Position.Y;
+                    z += plane.Position.Z;
+                }
+
+                return new Vector3d( x, y, z ) / planes.Count;
+            }
+        }
     }
 }

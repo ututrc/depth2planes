@@ -33,7 +33,7 @@ namespace ThreeDTrackCS
             }
         }
 
-        public Plane( Vector3d position, Vector3d normal, int id )
+        public Plane( ref Vector3d position, ref Vector3d normal, ref int id )
         {
             this.position = position;
             this.normal = normal;
@@ -43,6 +43,16 @@ namespace ThreeDTrackCS
         internal bool ContainsPoint( Vector3d position, double pointEpsilon )
         {
             return Math.Abs( normal.X * position.X + normal.Y * position.Y + normal.Z * position.Z - ( normal.X * this.position.X + normal.Y * this.position.Y + normal.Z * this.position.Z ) ) <= pointEpsilon;
+        }
+
+        public override string ToString()
+        {
+            return "{ \"id\": " + id + " \"position\": " + position + " \"normal\": " + normal + " }";
+        }
+
+        public string ToString(string format)
+        {
+            return "{ \"id\": " + id + " \"position\": " + position.ToString( format ) + " \"normal\": " + normal.ToString( format ) + " }";
         }
     }
 }

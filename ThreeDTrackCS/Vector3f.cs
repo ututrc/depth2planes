@@ -119,7 +119,7 @@ namespace ThreeDTrackCS
             float len = LengthSquared;
             if ( len == 0 || len == 1 )
                 return;
-            len = (float)Math.Sqrt( len );
+            len = 1 / (float)Math.Sqrt( len );
             X *= len;
             Y *= len;
             Z *= len;

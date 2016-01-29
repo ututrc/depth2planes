@@ -119,7 +119,7 @@ namespace ThreeDTrackCS
             double len = LengthSquared;
             if ( len == 0 || len == 1 )
                 return;
-            len = Math.Sqrt( len );
+            len = 1 / Math.Sqrt( len );
             X *= len;
             Y *= len;
             Z *= len;
@@ -144,5 +144,16 @@ namespace ThreeDTrackCS
             }
         }
         private static int size = System.Runtime.InteropServices.Marshal.SizeOf<Vector3d>();
+
+
+        public override string ToString()
+        {
+            return "[ " + X.ToString() + " " + Y.ToString() + " " + Z.ToString() + " ]";
+        }
+
+        public string ToString( string format )
+        {
+            return "[ " + X.ToString( format ) + " " + Y.ToString( format ) + " " + Z.ToString( format ) + " ]";
+        }
     }
 }

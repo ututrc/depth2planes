@@ -14,13 +14,36 @@ namespace ThreeDTrackCS
         private FeatureImageSize imageSize;
         private GridDivision gridDivision;
         private FeatureMargin margin;
+        private FieldOfViews fieldOfViews;
         private double pointEpsilon;
         private double normalEpsilon;
-        private int[] recalculatedIndices;
         private DepthDataFormat depthDataFormat;
-        private PointCloudFormat pointCloudFormat;
         private PlaneClusterizationRule planeClusterizationRule;
         private PlaneClusterCollection planeCollection;
+        private CoordinateMatcher coordinateMatcher;
+        private Vector3d[] coordinates;
+        private Line3DCollection line3DCollection;
+        private double depthHFOV;
+        private double depthVFOV;
+        private double HSIN;
+        private double HCOS;
+        private double VSIN;
+        private double VCOS;
+        private Vector3d planeLeftDirection;
+        private Vector3d planeRightDirection;
+        private Vector3d planeTopDirection;
+        private Vector3d planeBottomDirection;
+        private Vector3d depthFOVPlaneLeft;
+        private Vector3d depthFOVPlaneRight;
+        private Vector3d depthFOVPlaneTop;
+        private Vector3d depthFOVPlaneBottom;
+        private Vector3d depthFOVTopLeftLine;
+        private Vector3d depthFOVTopRightLine;
+        private Vector3d depthFOVBottomRightLine;
+        private Vector3d depthFOVBottomLeftLine;
+        private double horizontalMultiplier;
+        private double verticalMultiplier;
+        private LimitedLine2DCollection limited2dLines;
 
         #endregion
 
@@ -34,6 +57,39 @@ namespace ThreeDTrackCS
             get
             {
                 return planeCollection;
+            }
+        }
+
+        /// <summary>
+        /// Get or set the minimum plane cluster size in cells
+        /// </summary>
+        public int MinimumPlaneClusterSize
+        {
+            get;
+            set;
+        }
+
+        public LimitedLine2DCollection RenderLineCollection
+        {
+            get
+            {
+                return limited2dLines;
+            }
+        }
+
+        public Line3DCollection LineCollection
+        {
+            get
+            {
+                return line3DCollection;
+            }
+        }
+
+        public FieldOfViews FieldOfViews
+        {
+            get
+            {
+                return fieldOfViews;
             }
         }
 
@@ -115,21 +171,6 @@ namespace ThreeDTrackCS
         }
 
         /// <summary>
-        /// Get or set the format of the source point cloud
-        /// </summary>
-        public PointCloudFormat PointCloudFormat
-        {
-            get
-            {
-                return pointCloudFormat;
-            }
-            set
-            {
-                pointCloudFormat = value;
-            }
-        }
-
-        /// <summary>
         /// Get the element controlling size of the featured image
         /// </summary>
         public FeatureImageSize ImageSize
@@ -169,90 +210,106 @@ namespace ThreeDTrackCS
         public FeatureExtractor()
         {
             // Setting up the divisions to respond when changed
+            line3DCollection = new Line3DCollection();
+            limited2dLines = new LimitedLine2DCollection();
             gridDivision = new GridDivision( this );
             imageSize = new FeatureImageSize( this );
             margin = new FeatureMargin( this );
+            fieldOfViews = new FieldOfViews( this );
             planeCollection = new PlaneClusterCollection( this );
+            coordinateMatcher = new CoordinateMatcher( this );
         }
 
         #endregion
 
         #region Internal Featured Functions
 
-        private void Updateindices()
-        {
-            recalculatedIndices = new int[( gridDivision.Horizontal + 1 ) * ( gridDivision.Vertical + 1 )];
-            double xsize = imageSize.Width - margin.Left - margin.Right;
-            double ysize = imageSize.Height - margin.Top - margin.Bottom;
-            double xdiv = xsize / gridDivision.Horizontal;
-            double ydiv = ysize / gridDivision.Vertical;
-            for ( int x = 0; x <= gridDivision.Horizontal; x++ )
-            {
-                int realX = (int)( margin.Left + x * xdiv );
-                for ( int y = 0; y < gridDivision.Vertical; y++ )
-                {
-                    int realY = (int)( margin.Top + y * ydiv );
-                    recalculatedIndices[x + y * ( gridDivision.Vertical + 1 )] = realX + realY * imageSize.Width;
-                }
-            }
-        }
-
         internal void OnDivisonChanged()
         {
-            Updateindices();
         }
 
         internal void OnImageSizeChanged()
         {
-            Updateindices();
+            UpdateFovProperties();
+            coordinateMatcher.Update();
         }
 
         internal void OnMarginChanged()
         {
-            Updateindices();
+        }
+
+        internal void OnFieldOfViewChanged()
+        {
+            UpdateFovProperties();
+            coordinateMatcher.Update();
         }
 
         #endregion
 
         #region Methods
 
+        public Vector3d GetCoordinateAtIndex( int index )
+        {
+            if(coordinates != null)
+                return coordinates[index];
+            return new Vector3d();
+        }
+
         /// <summary>
         /// Extract features from given data
         /// </summary>
         /// <param name="depthData">Pointer to depth data</param>
-        /// <param name="pointCloud">Pointer to point cloud</param>
-        public void ExtractFreatures( IntPtr depthData, IntPtr pointCloud )
+        public void ExtractPlanes( IntPtr depthData )
         {
+            coordinates = new Vector3d[ImageSize.Width * ImageSize.Height];
+            coordinateMatcher.CalculateCoordinateTranslation( depthData, coordinates );
 
-            int topLeftIndex, topRightIndex, bottomLeftIndex, bottomRightIndex;
+            int cellId;
             int realTopLeftIndex, realTopRightIndex, realBottomLeftIndex, realBottomRightIndex;
             List<Plane> planeCollection = new List<Plane>( gridDivision.Horizontal * gridDivision.Vertical );
 
             Vector3d planePoint, planeNormal;
 
+            int horizontalGridDivision = gridDivision.Horizontal;
+            int verticalGridDivision = gridDivision.Vertical;
+            double pointEpsilon = this.pointEpsilon;
+            double normalEpsilon = this.normalEpsilon;
+            int marginLeft = margin.Left;
+            int marginRight = margin.Right;
+            int marginTop = margin.Top;
+            int marginBottom = margin.Bottom;
+            int imageWidth = imageSize.Width;
+            int imageHeight = imageSize.Height;
+
+            double xsize = imageWidth - marginLeft - marginRight;
+            double ysize = imageHeight - marginTop - marginBottom;
+
+            double xgridsize = xsize / horizontalGridDivision;
+            double ygridsize = ysize / verticalGridDivision;
+
+            double xpos = marginLeft;
+            double ypos = marginTop;
+
             /*
              * Get the detected (and allowed) planes from the given data
              */
-            for ( int x = 0; x < gridDivision.Horizontal; x++ )
+            for ( int x = 0; x < horizontalGridDivision; x++, xpos += xgridsize )
             {
-
-                for ( int y = 0; y < gridDivision.Vertical; y++ )
+                ypos = marginTop;
+                for ( int y = 0; y < verticalGridDivision; y++, ypos += ygridsize )
                 {
-                    topLeftIndex = x + y * gridDivision.Horizontal;
-                    topRightIndex = topLeftIndex + 1;
-                    bottomLeftIndex = topLeftIndex + gridDivision.Horizontal;
-                    bottomRightIndex = bottomLeftIndex + 1;
+                    cellId = x + y * gridDivision.Horizontal;
 
-                    realTopLeftIndex = recalculatedIndices[topLeftIndex];
-                    realTopRightIndex = recalculatedIndices[topRightIndex];
-                    realBottomLeftIndex = recalculatedIndices[bottomLeftIndex];
-                    realBottomRightIndex = recalculatedIndices[bottomRightIndex];
+                    realTopLeftIndex = (int)xpos + ( (int)ypos ) * imageWidth;
+                    realTopRightIndex = (int)( xpos + xgridsize ) + ( (int)ypos ) * imageWidth;
+                    realBottomLeftIndex = (int)xpos + ( (int)( ypos + ygridsize ) ) * imageWidth;
+                    realBottomRightIndex = (int)( xpos + xgridsize ) + ( (int)( ypos + ygridsize ) ) * imageWidth;
 
-                    if ( FeatureExtractorHelper.DepthDataValid( depthData, depthDataFormat, realTopLeftIndex, realTopRightIndex, realBottomLeftIndex, realBottomRightIndex ) )
+                    if ( FeatureExtractorHelper.DepthDataValid( depthData, ref depthDataFormat, ref realTopLeftIndex, ref realTopRightIndex, ref realBottomLeftIndex, ref realBottomRightIndex ) )
                     {
-                        if ( FeatureExtractorHelper.IsPlane( pointCloud, pointCloudFormat, realTopLeftIndex, realTopRightIndex, realBottomLeftIndex, realBottomRightIndex, pointEpsilon, out planePoint, out planeNormal ) )
+                        if ( FeatureExtractorHelper.IsPlane( coordinates, ref realTopLeftIndex, ref realTopRightIndex, ref realBottomLeftIndex, ref realBottomRightIndex, ref pointEpsilon, out planePoint, out planeNormal ) )
                         {
-                            planeCollection.Add( FeatureExtractorHelper.CreatePlane( planePoint, planeNormal, topLeftIndex ) );
+                            planeCollection.Add( FeatureExtractorHelper.CreatePlane( ref planePoint, ref planeNormal, ref cellId ) );
                         }
                     }
 
@@ -265,11 +322,113 @@ namespace ThreeDTrackCS
              */
 
             this.planeCollection.Clear();
-
+            int index = 0;
             foreach ( Plane plane in planeCollection )
             {
                 this.planeCollection.AddPlane( plane );
+                index++;
             }
+
+            this.planeCollection.RemoveSmallClusters( MinimumPlaneClusterSize );
+
+            
+        }
+
+        public void ExtractIntersectionLines()
+        {
+            line3DCollection.Clear();
+            Line3D line;
+            foreach ( PlaneCluster plane1 in planeCollection )
+            {
+                foreach ( PlaneCluster plane2 in planeCollection )
+                {
+                    if ( plane1 == plane2 )
+                        continue;
+                    if ( FeatureExtractorHelper.CalculateIntersection( plane1, plane2, out line ) )
+                    {
+                        line3DCollection.Add( line );
+                    }
+                }
+            }
+        }
+
+        public void CalculateProjectedLines()
+        {
+            List<Vector2d> acceptablePoints = new List<Vector2d>( 4 );
+
+            Vector2d start, stop;
+
+            limited2dLines.Clear();
+
+            const double epsilon = .0001;
+
+            foreach ( Line3D line in line3DCollection )
+            {
+                if ( Math.Abs( line.Direction * depthFOVPlaneLeft - 1 ) > epsilon )
+                {
+                    acceptablePoints.Add( CalculateProjectedPoint( FeatureExtractorHelper.CalculateLinePlaneIntersectionPoint( line, depthFOVPlaneLeft ) ) );
+                }
+                if ( Math.Abs( line.Direction * depthFOVPlaneTop - 1 ) > epsilon )
+                {
+                    acceptablePoints.Add( CalculateProjectedPoint( FeatureExtractorHelper.CalculateLinePlaneIntersectionPoint( line, depthFOVPlaneTop ) ) );
+                }
+                if ( Math.Abs( line.Direction * depthFOVPlaneRight - 1 ) > epsilon )
+                {
+                    acceptablePoints.Add( CalculateProjectedPoint( FeatureExtractorHelper.CalculateLinePlaneIntersectionPoint( line, depthFOVPlaneRight ) ) );
+                }
+                if ( Math.Abs( line.Direction * depthFOVPlaneBottom - 1 ) > epsilon )
+                {
+                    acceptablePoints.Add( CalculateProjectedPoint( FeatureExtractorHelper.CalculateLinePlaneIntersectionPoint( line, depthFOVPlaneBottom ) ) );
+                }
+
+                if ( FeatureExtractorHelper.FindBestLine( acceptablePoints, imageSize, out start, out stop ) )
+                {
+                    limited2dLines.Add( new LimitedLine2d( start, stop ) );
+                }
+
+            }
+        }
+
+        private Vector2d CalculateProjectedPoint( Vector3d spacePoint )
+        {
+            double localHalfWidth = spacePoint.Z * horizontalMultiplier;
+            double localHalfHeight = spacePoint.Z * verticalMultiplier;
+
+            return new Vector2d(
+                ( spacePoint.X + localHalfWidth ) / ( 2 * localHalfWidth ) * imageSize.Width,
+                (1 - ( spacePoint.Y + localHalfHeight ) / ( 2 * localHalfHeight ) ) * imageSize.Height);
+        }
+
+        private void UpdateFovProperties()
+        {
+            depthHFOV = fieldOfViews.Horizontal.AngleDegrees;
+            depthVFOV = fieldOfViews.Vertical.AngleDegrees;
+
+            double depthHFOVRad2 = ( depthHFOV * .5 ) * Math.PI / 180;
+            double depthVFOVRad2 = ( depthVFOV * .5 ) * Math.PI / 180;
+
+            HSIN = Math.Sin( depthHFOVRad2 );
+            HCOS = Math.Cos( depthHFOVRad2 );
+            VSIN = Math.Sin( depthVFOVRad2 );
+            VCOS = Math.Cos( depthVFOVRad2 );
+
+            planeLeftDirection = new Vector3d( -HSIN, 0, HCOS );
+            planeRightDirection = new Vector3d( HSIN, 0, HCOS );
+            planeTopDirection = new Vector3d( 0, VSIN, VCOS );
+            planeBottomDirection = new Vector3d( 0, -VSIN, VCOS );
+
+            depthFOVPlaneLeft = new Vector3d( HCOS, 0, HSIN );
+            depthFOVPlaneRight = new Vector3d( -HCOS, 0, HSIN );
+            depthFOVPlaneTop = new Vector3d( 0, -VCOS, VSIN );
+            depthFOVPlaneBottom = new Vector3d( 0, VCOS, VSIN );
+
+            depthFOVTopLeftLine = Vector3d.Cross( depthFOVPlaneLeft, depthFOVPlaneTop );
+            depthFOVTopRightLine = Vector3d.Cross( depthFOVPlaneTop, depthFOVPlaneRight );
+            depthFOVBottomRightLine = Vector3d.Cross( depthFOVPlaneRight, depthFOVPlaneBottom );
+            depthFOVBottomLeftLine = Vector3d.Cross( depthFOVPlaneBottom, depthFOVPlaneLeft );
+
+            horizontalMultiplier = planeRightDirection.X / planeRightDirection.Z;
+            verticalMultiplier = planeTopDirection.Y / planeTopDirection.Z;
         }
 
         #endregion
