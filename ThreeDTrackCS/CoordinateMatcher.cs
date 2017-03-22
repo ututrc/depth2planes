@@ -3,6 +3,11 @@ using System.Runtime.InteropServices;
 
 namespace ThreeDTrackCS
 {
+    /// <summary>
+    /// A translator from raw depth data to 3D-data.
+    /// Does not support Kinect-2 as this library works with perspective data whereas kinect uses ortographic data.
+    /// Please replace the functionality of this class when necessary.
+    /// </summary>
     internal class CoordinateMatcher
     {
         private FeatureExtractor parent;

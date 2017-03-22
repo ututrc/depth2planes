@@ -69,6 +69,9 @@ namespace ThreeDTrackCS
             set;
         }
 
+        /// <summary>
+        /// Get the collection of render lines (projected 2D-lines)
+        /// </summary>
         public LimitedLine2DCollection RenderLineCollection
         {
             get
@@ -77,6 +80,9 @@ namespace ThreeDTrackCS
             }
         }
 
+        /// <summary>
+        /// Get the collection of intersection lines
+        /// </summary>
         public Line3DCollection LineCollection
         {
             get
@@ -85,6 +91,9 @@ namespace ThreeDTrackCS
             }
         }
 
+        /// <summary>
+        /// Get Field of Views
+        /// </summary>
         public FieldOfViews FieldOfViews
         {
             get
@@ -334,6 +343,9 @@ namespace ThreeDTrackCS
             
         }
 
+        /// <summary>
+        /// Extracts intersection lines after the plane extraction has been done
+        /// </summary>
         public void ExtractIntersectionLines()
         {
             line3DCollection.Clear();
@@ -352,6 +364,9 @@ namespace ThreeDTrackCS
             }
         }
 
+        /// <summary>
+        /// Creates projection planes (2D) for image display
+        /// </summary>
         public void CalculateProjectedLines()
         {
             List<Vector2d> acceptablePoints = new List<Vector2d>( 4 );
@@ -389,6 +404,11 @@ namespace ThreeDTrackCS
             }
         }
 
+        /// <summary>
+        /// Calculates projected point in image for 3D point
+        /// </summary>
+        /// <param name="spacePoint">3D point</param>
+        /// <returns>Projected point</returns>
         private Vector2d CalculateProjectedPoint( Vector3d spacePoint )
         {
             double localHalfWidth = spacePoint.Z * horizontalMultiplier;

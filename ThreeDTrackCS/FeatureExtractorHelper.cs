@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace ThreeDTrackCS
 {
+    /// <summary>
+    /// A tool that aids in variety of feature extraction calculations
+    /// </summary>
     public static class FeatureExtractorHelper
     {
         internal static bool DepthDataValid( IntPtr depthDataPointer, ref DepthDataFormat format, ref int topLeftIndex, ref int topRightIndex, ref int bottomLeftIndex, ref int bottomRightIndex )
@@ -23,6 +26,18 @@ namespace ThreeDTrackCS
             }
         }
 
+        /// <summary>
+        /// Checks if given pointset forms a plane
+        /// </summary>
+        /// <param name="pointCloud">Points</param>
+        /// <param name="topLeftIndex">Index of first point</param>
+        /// <param name="topRightIndex">Index of second point</param>
+        /// <param name="bottomLeftIndex">Index of third point</param>
+        /// <param name="bottomRightIndex">Index of fourth point</param>
+        /// <param name="epsilon">Error allowed in calculations (noise filter)</param>
+        /// <param name="planePoint">A position in plane</param>
+        /// <param name="planeNormal">Normal of plane</param>
+        /// <returns>true if the points form a plane</returns>
         public static bool IsPlane( Vector3d[] pointCloud, ref int topLeftIndex, ref int topRightIndex, ref int bottomLeftIndex, ref int bottomRightIndex, ref double epsilon, out Vector3d planePoint, out Vector3d planeNormal )
         {
 
@@ -33,6 +48,14 @@ namespace ThreeDTrackCS
             return Math.Abs( planeNormal.X * pointCloud[bottomRightIndex].X + planeNormal.Y * pointCloud[bottomRightIndex].Y + planeNormal.Z * pointCloud[bottomRightIndex].Z - ( planeNormal.X * planePoint.X + planeNormal.Y * planePoint.Y + planeNormal.Z * planePoint.Z ) ) <= epsilon;
         }
 
+        /// <summary>
+        /// Checks if given pointset forms a plane
+        /// </summary>
+        /// <param name="epsilon">Allowed error</param>
+        /// <param name="planePoint">Resulting plane position</param>
+        /// <param name="planeNormal">Resulting plane direction</param>
+        /// <param name="points">Points in plane</param>
+        /// <returns>true if given points are in the same plane</returns>
         public static bool IsPlane( double epsilon, out Vector3d planePoint, out Vector3d planeNormal, params Vector3d[] points )
         {
             if ( points.Length < 3 )
@@ -57,12 +80,26 @@ namespace ThreeDTrackCS
             return true;
         }
 
+        /// <summary>
+        /// Creates a plane from given data
+        /// </summary>
+        /// <param name="point">A position in plane</param>
+        /// <param name="normal">Direction of plane</param>
+        /// <param name="id">A differeating id of the plane</param>
+        /// <returns>A plane</returns>
         internal static Plane CreatePlane( ref Vector3d point, ref Vector3d normal, ref int id )
         {
 
             return new Plane( ref point, ref normal, ref id );
         }
 
+        /// <summary>
+        /// Calculates an intersection line between planes
+        /// </summary>
+        /// <param name="plane1">First plane</param>
+        /// <param name="plane2">Second plane</param>
+        /// <param name="line">Resulting intersection</param>
+        /// <returns>true if planes are not parallel</returns>
         internal static bool CalculateIntersection( PlaneCluster plane1, PlaneCluster plane2, out Line3D line )
         {
             Vector3d normal1 = plane1.AverageNormal;
@@ -87,11 +124,24 @@ namespace ThreeDTrackCS
             return true;
         }
 
+        /// <summary>
+        /// Calculates line-plane intersection point
+        /// </summary>
+        /// <param name="line">Intersecting line</param>
+        /// <param name="planeNormal">intersected plane</param>
+        /// <returns>A point of intersection</returns>
+        /// <remarks>Please note that if line direction is perpendicular to planeNormal, the function will throw zero division exception.</remarks>
         internal static Vector3d CalculateLinePlaneIntersectionPoint( Line3D line, Vector3d planeNormal )
         {
             return line.Position + line.Direction * -( planeNormal * line.Position ) / ( line.Direction * planeNormal );
         }
 
+        /// <summary>
+        /// Finds points from given collection that are furthest from each other
+        /// </summary>
+        /// <param name="acceptablePoints">Collection of points</param>
+        /// <param name="start">Start point</param>
+        /// <param name="stop">End point</param>
         internal static void FindMostDistantPoints( List<Vector2d> acceptablePoints, out Vector2d start, out Vector2d stop )
         {
             double maxDist = 0;
@@ -112,6 +162,7 @@ namespace ThreeDTrackCS
             start = acceptablePoints[sourcePair];
             stop = acceptablePoints[targetPair];
         }
+
 
         internal static bool FindBestLine( List<Vector2d> acceptablePoints, FeatureImageSize size, out Vector2d start, out Vector2d stop )
         {
@@ -148,6 +199,13 @@ namespace ThreeDTrackCS
             return point.X >= -epsilon && point.X <= size.Width + epsilon && point.Y >= -epsilon && point.Y <= size.Height + epsilon;
         }
 
+        /// <summary>
+        /// Checks if a point, with given error range, is found in given collection
+        /// </summary>
+        /// <param name="point"></param>
+        /// <param name="uniquePoints"></param>
+        /// <param name="epsilon"></param>
+        /// <returns></returns>
         private static bool IsUnique( Vector2d point, List<Vector2d> uniquePoints, double epsilon )
         {
             epsilon *= epsilon;

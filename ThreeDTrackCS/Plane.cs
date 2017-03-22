@@ -8,7 +8,9 @@ namespace ThreeDTrackCS
         private Vector3d position;
         private Vector3d normal;
         private int id;
-
+        /// <summary>
+        /// Get the id of plane
+        /// </summary>
         public int Id
         {
             get
@@ -16,7 +18,9 @@ namespace ThreeDTrackCS
                 return id;
             }
         }
-
+        /// <summary>
+        /// Get a position in plane
+        /// </summary>
         public Vector3d Position
         {
             get
@@ -24,7 +28,9 @@ namespace ThreeDTrackCS
                 return position;
             }
         }
-
+        /// <summary>
+        /// Get the normal direction of plane
+        /// </summary>
         public Vector3d Normal
         {
             get

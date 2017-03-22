@@ -4,6 +4,9 @@ using System.Collections.Generic;
 
 namespace ThreeDTrackCS
 {
+    /// <summary>
+    /// Collection of 3d-lines
+    /// </summary>
     public class Line3DCollection : IEnumerable<Line3D>
     {
         private int lineIdGenerator;
@@ -23,14 +26,20 @@ namespace ThreeDTrackCS
         {
             return lines.Values.GetEnumerator();
         }
-
+        /// <summary>
+        /// Add a line
+        /// </summary>
+        /// <param name="line"></param>
+        /// <returns></returns>
         public int Add( Line3D line )
         {
             int lineIndex = lineIdGenerator++;
             lines.Add( lineIndex, line );
             return lineIndex;
         }
-
+        /// <summary>
+        /// Clear lines
+        /// </summary>
         public void Clear()
         {
             lines.Clear();

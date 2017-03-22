@@ -2,7 +2,7 @@
 {
     public class FieldOfView
     {
-
+        /* Basic translators between radians and degrees (used with multiplication) */
         private const double RadiansToDegrees = 180 / System.Math.PI;
         private const double DegreesToRadians = System.Math.PI / 180;
 
@@ -14,6 +14,9 @@
             this.parent = parent;
         }
         
+        /// <summary>
+        /// Get or set the angle in degrees
+        /// </summary>
         public double AngleDegrees
         {
             get
@@ -28,6 +31,9 @@
             }
         }
 
+        /// <summary>
+        /// Get or set the angle in radians
+        /// </summary>
         public double AngleRadians
         {
             get

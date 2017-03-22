@@ -1,5 +1,8 @@
 ﻿namespace ThreeDTrackCS
 {
+    /// <summary>
+    /// Limited line is a ray between two points
+    /// </summary>
     public class LimitedLine2d
     {
 

@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 
 namespace ThreeDTrackCS
 {
+    /// <summary>
+    /// A generic two dimensional "fast" array
+    /// Uses one dimensional array with scope to work
+    /// </summary>
+    /// <typeparam name="T">The type of array</typeparam>
     public class D2Array<T>
     {
 

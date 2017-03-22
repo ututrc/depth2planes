@@ -5,6 +5,9 @@
         private FeatureExtractor parent;
         private int left, top, right, bottom;
 
+        /// <summary>
+        /// Get or set left margin
+        /// </summary>
         public int Left
         {
             get
@@ -17,7 +20,9 @@
                 parent.OnMarginChanged();
             }
         }
-
+        /// <summary>
+        /// Get or set top margin
+        /// </summary>
         public int Top
         {
             get
@@ -30,7 +35,9 @@
                 parent.OnMarginChanged();
             }
         }
-
+        /// <summary>
+        /// Get or set right margin
+        /// </summary>
         public int Right
         {
             get
@@ -43,7 +50,9 @@
                 parent.OnMarginChanged();
             }
         }
-
+        /// <summary>
+        /// Get or set bottom margin
+        /// </summary>
         public int Bottom
         {
             get
